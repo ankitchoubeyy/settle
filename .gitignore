@@ -1,0 +1,42 @@
+# === Node Modules ===
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# === Build Outputs ===
+dist/
+build/
+client/.next/
+client/out/
+server/dist/
+
+# === Logs ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# === Environment Files ===
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+client/.env*
+server/.env*
+
+# === OS/System Files ===
+.DS_Store
+Thumbs.db
+
+# === Editor Configs ===
+.vscode/
+.idea/
+*.swp
+
+# === Misc Cache ===
+*.cache
+*.tmp
+*.lock

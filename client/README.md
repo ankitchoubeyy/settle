@@ -1,0 +1,1 @@
+# Settle - AI powered Journal Application
