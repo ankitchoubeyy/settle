@@ -1,24 +1,23 @@
 import Journal from "../models/JournalModel.js";
 import analyseJournal from "../services/geminiAiServices.js";
 
-// Get all journals
+// 🧾 Get all journals for logged-in user
 export const getAllJournals = async (req, res) => {
   try {
-    const journals = await Journal.find().populate("user", "name email");
+    const journals = await Journal.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.json(journals);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Get journal by ID
+// 🧾 Get one journal (user can only access their own)
 export const getJournalById = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(400).json({ error: "Journal ID is required" });
+    const journal = await Journal.findOne({ _id: id, user: req.user._id });
 
-    const journal = await Journal.findById(id).populate("user", "name email");
-    if (!journal) return res.status(404).json({ error: "Journal not found" });
+    if (!journal) return res.status(404).json({ error: "Journal not found or access denied" });
 
     res.json(journal);
   } catch (error) {
@@ -26,20 +25,17 @@ export const getJournalById = async (req, res) => {
   }
 };
 
-// Create a new journal (with AI analysis)
+// ✍️ Create a new journal (AI analysis included)
 export const createJournal = async (req, res) => {
   try {
-    const { user, content } = req.body;
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ error: "Journal content is required" });
 
-    if (!content) {
-      return res.status(400).json({ error: "Journal content is required" });
-    }
-
-    // Analyze sentiment and feedback using Gemini AI
+    // AI sentiment & feedback
     const { sentiment, feedback } = await analyseJournal(content);
 
     const journal = await Journal.create({
-      user,
+      user: req.user._id,
       content,
       sentiment,
       aiFeedback: feedback,
@@ -55,57 +51,44 @@ export const createJournal = async (req, res) => {
   }
 };
 
-// Update journal by ID (and re-analyze with AI)
+// 🔁 Update journal (only if belongs to user)
 export const updateJournalById = async (req, res) => {
   try {
     const { id } = req.params;
     const { content } = req.body;
 
-    if (!id) return res.status(400).json({ error: "Journal ID is required" });
+    const journal = await Journal.findOne({ _id: id, user: req.user._id });
+    if (!journal) return res.status(404).json({ error: "Journal not found or access denied" });
 
-    const existingJournal = await Journal.findById(id);
-    if (!existingJournal) return res.status(404).json({ error: "Journal not found" });
+    let sentiment = journal.sentiment;
+    let aiFeedback = journal.aiFeedback;
 
-    let sentiment = existingJournal.sentiment;
-    let aiFeedback = existingJournal.aiFeedback;
-
-    // Re-run AI analysis only if content changes
-    if (content && content !== existingJournal.content) {
+    if (content && content !== journal.content) {
       const analysis = await analyseJournal(content);
       sentiment = analysis.sentiment;
       aiFeedback = analysis.feedback;
     }
 
-    const updatedJournal = await Journal.findByIdAndUpdate(
-      id,
-      { ...req.body, sentiment, aiFeedback },
-      { new: true }
-    );
+    journal.content = content || journal.content;
+    journal.sentiment = sentiment;
+    journal.aiFeedback = aiFeedback;
+    await journal.save();
 
-    res.json({
-      success: true,
-      message: "Journal updated successfully",
-      updatedJournal,
-    });
+    res.json({ success: true, message: "Journal updated", journal });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Delete journal by ID
+// 🗑️ Delete journal (only if belongs to user)
 export const deleteJournalById = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(400).json({ error: "Journal ID is required" });
+    const journal = await Journal.findOneAndDelete({ _id: id, user: req.user._id });
 
-    const deletedJournal = await Journal.findByIdAndDelete(id);
-    if (!deletedJournal) return res.status(404).json({ error: "Journal not found" });
+    if (!journal) return res.status(404).json({ error: "Journal not found or access denied" });
 
-    res.json({
-      success: true,
-      message: "Journal deleted successfully",
-      deletedJournal,
-    });
+    res.json({ success: true, message: "Journal deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
