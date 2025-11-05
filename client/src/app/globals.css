@@ -1,26 +1,139 @@
 @import "tailwindcss";
 
+/* Root Theme Colors */
 :root {
-  --background: #ffffff;
+  --background: #fcfaf9;
   --foreground: #171717;
+  --primary: #21c063;
+  --secondary: #e6e6e6;
+  --accent: #14b8a6;
+  --muted: #6b7280;
+  --border: #d1d5db;
+  --card: #ffffff;
+
+  /* Fonts */
+  --font-logo: var(--font-pacifico);
+  --font-heading: var(--font-poppins);
+  --font-body: var(--font-inter);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Base Styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body), sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    opacity: 0.8;
+  }
+
+  ::selection {
+    background-color: var(--primary);
+    color: white;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom Utilities */
+@layer utilities {
+  .text-primary {
+    color: var(--primary);
+  }
+
+  .bg-primary {
+    background-color: var(--primary);
+  }
+
+  .bg-secondary {
+    background-color: var(--secondary);
+  }
+
+  .bg-accent {
+    background-color: var(--accent);
+  }
+
+  .border-primary {
+    border-color: var(--primary);
+  }
+
+  .border-secondary {
+    border-color: var(--secondary);
+  }
+
+  .text-muted {
+    color: var(--muted);
+  }
+
+  .card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+    background-color: #1ba855; /* Slightly darker green on hover */
+  }
+
+  .btn-secondary {
+    background-color: var(--secondary);
+    color: var(--foreground);
+  }
+
+  .btn-secondary:hover {
+    background-color: #dcdcdc;
+  }
+
+  /* Fonts */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading), sans-serif;
+  }
+
+  .logo {
+    font-family: var(--font-logo), cursive;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--secondary);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary);
 }
