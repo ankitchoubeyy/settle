@@ -5,8 +5,8 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 const journalRouter = express.Router();
 
 // Journal routes
-journalRouter.get("/", getAllJournals);
-journalRouter.get("/:id", getJournalById);
+journalRouter.get("/", authMiddleware, getAllJournals);
+journalRouter.get("/:id", authMiddleware, getJournalById);
 
 // Protected routes
 journalRouter.post("/", authMiddleware, createJournal);

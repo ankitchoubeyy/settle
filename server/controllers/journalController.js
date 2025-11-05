@@ -1,7 +1,7 @@
 import Journal from "../models/JournalModel.js";
 import analyseJournal from "../services/geminiAiServices.js";
 
-// 🧾 Get all journals for logged-in user
+// Get all journals for logged-in user
 export const getAllJournals = async (req, res) => {
   try {
     const journals = await Journal.find({ user: req.user._id }).sort({ createdAt: -1 });
@@ -11,7 +11,7 @@ export const getAllJournals = async (req, res) => {
   }
 };
 
-// 🧾 Get one journal (user can only access their own)
+// Get one journal (user can only access their own)
 export const getJournalById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -25,32 +25,24 @@ export const getJournalById = async (req, res) => {
   }
 };
 
-// ✍️ Create a new journal (AI analysis included)
+// Create a new journal (AI analysis included)
 export const createJournal = async (req, res) => {
   try {
     const { content } = req.body;
-    console.log(`🧾 Creating new journal: ${content}`);
     if (!content) return res.status(400).json({ error: "Journal content is required" });
 
     // AI sentiment & feedback - Call the analysis function
     const aiResult = await analyseJournal(content);
     
-    // --- START OF FIX ---
-    // 1. Get the raw JSON string from the nested 'text' field.
     const rawJsonString = aiResult.parts[0].text;
-    
-    // 2. Remove the markdown code block wrapper (```json\n...\n```).
     const cleanJsonString = rawJsonString.replace(/```json\s*|```\s*/g, '').trim();
-    
-    // 3. Parse the clean JSON string to get the final object.
     const { sentiment, feedback } = JSON.parse(cleanJsonString);
-    // --- END OF FIX ---
 
     const journal = await Journal.create({
       user: req.user._id,
       content,
-      sentiment, // Now holds the correct value (e.g., "positive")
-      aiFeedback: feedback, // Now holds the correct value (e.g., "It's great...")
+      sentiment,
+      aiFeedback: feedback,
     });
 
     res.status(201).json({
@@ -65,7 +57,7 @@ export const createJournal = async (req, res) => {
   }
 };
 
-// 🔁 Update journal (only if belongs to user)
+// Update journal (only if belongs to user)
 export const updateJournalById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -94,7 +86,7 @@ export const updateJournalById = async (req, res) => {
   }
 };
 
-// 🗑️ Delete journal (only if belongs to user)
+// Delete journal (only if belongs to user)
 export const deleteJournalById = async (req, res) => {
   try {
     const { id } = req.params;
