@@ -29,16 +29,28 @@ export const getJournalById = async (req, res) => {
 export const createJournal = async (req, res) => {
   try {
     const { content } = req.body;
+    console.log(`🧾 Creating new journal: ${content}`);
     if (!content) return res.status(400).json({ error: "Journal content is required" });
 
-    // AI sentiment & feedback
-    const { sentiment, feedback } = await analyseJournal(content);
+    // AI sentiment & feedback - Call the analysis function
+    const aiResult = await analyseJournal(content);
+    
+    // --- START OF FIX ---
+    // 1. Get the raw JSON string from the nested 'text' field.
+    const rawJsonString = aiResult.parts[0].text;
+    
+    // 2. Remove the markdown code block wrapper (```json\n...\n```).
+    const cleanJsonString = rawJsonString.replace(/```json\s*|```\s*/g, '').trim();
+    
+    // 3. Parse the clean JSON string to get the final object.
+    const { sentiment, feedback } = JSON.parse(cleanJsonString);
+    // --- END OF FIX ---
 
     const journal = await Journal.create({
       user: req.user._id,
       content,
-      sentiment,
-      aiFeedback: feedback,
+      sentiment, // Now holds the correct value (e.g., "positive")
+      aiFeedback: feedback, // Now holds the correct value (e.g., "It's great...")
     });
 
     res.status(201).json({
@@ -47,6 +59,8 @@ export const createJournal = async (req, res) => {
       journal,
     });
   } catch (error) {
+    // Add logging here to catch parsing errors
+    console.error("Error during journal creation or AI analysis:", error); 
     res.status(500).json({ error: error.message });
   }
 };

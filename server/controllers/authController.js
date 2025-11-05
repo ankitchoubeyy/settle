@@ -46,28 +46,52 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check user
+    // Find user
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid email or password" });
 
-    // Compnare password
-    const isMatch = await user.comparePassword(password);
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
-    // Generate JWT Token
+    // Create JWT
     const token = jwt.sign(
-      { id: user._id },            // payload
+      { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }  // expiry
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
     );
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // only secure in prod (HTTPS)
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     // Send response
     res.json({
       success: true,
       user: { id: user._id, name: user.name, email: user.email },
-      token,
+      message: "Login successful",
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Logout user
+export const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    res.json({ message: "Logout successful" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Get logged in user info
+export const getLoggedInUser = (req, res) => {
+  return res.json({ user: req.user });
+};
+

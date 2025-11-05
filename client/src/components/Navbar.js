@@ -2,9 +2,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { FiMenu, FiX } from "react-icons/fi";
+import { useSelector } from "react-redux";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Checking User Login
+  const user = useSelector((state) => state.auth.user);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
@@ -54,12 +58,23 @@ const Navbar = () => {
 
       {/* Desktop Button */}
       <div className="hidden md:block">
-        <Link
-          href="/login"
-          className="btn shadow-sm hover:shadow-md transition-all duration-200"
-        >
-          Get Started
-        </Link>
+        {
+          user ? (
+            <Link
+              href="/dashboard"
+              className="btn shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="btn shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              Get Started
+            </Link>
+          )
+        }
       </div>
 
       {/* Mobile Menu Button */}

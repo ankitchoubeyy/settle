@@ -2,6 +2,7 @@ import { Pacifico, Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Providers from "./providers.js";
 
 // Pacifico - Logo font
 const pacifico = Pacifico({
@@ -36,11 +37,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable} ${pacifico.variable}`}>
-      <body className="antialiased">
-        <Navbar />
-        {children}
-        <Footer />
-      </body>
+      <Providers>
+        <body className="antialiased">
+          <Navbar />
+          {children}
+          <Footer />
+        </body>
+      </Providers>
     </html>
   );
 }

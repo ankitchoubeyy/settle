@@ -7,14 +7,13 @@ const ai = new GoogleGenAI({
   apiKey: "AIzaSyCXnVwCHBhnBGBFBsSMw0-avPk2Y3IVmB0"
 });
 
-// Analyse journal content with AI
 async function analyseJournal(text) {
   try {
     const prompt = `
       Analyze the following journal entry:
       "${text}"
 
-      Respond in **pure JSON** format matching this structure exactly:
+      Respond in JSON format matching this structure exactly:
       {
         "sentiment": "positive | negative | neutral",
         "feedback": "one short feedback sentence"
@@ -26,23 +25,38 @@ async function analyseJournal(text) {
       contents: prompt,
     });
 
-    // Extract model output as text
-    const rawText = response.response.text().trim();
+    // DEBUG: log raw response
+    console.log("AI raw response:", response);
 
-    // Try to parse JSON safely
+    // Safely extract the content from first candidate
+    let rawText = "";
+    if (response?.candidates?.length > 0) {
+      const firstCandidate = response.candidates[0];
+      rawText =
+        typeof firstCandidate.content === "string"
+          ? firstCandidate.content
+          : JSON.stringify(firstCandidate.content);
+    } else {
+      rawText = "Unable to analyze";
+    }
+
+    rawText = rawText.trim();
+
+    // Try parsing JSON
     let parsed;
     try {
       parsed = JSON.parse(rawText);
     } catch (e) {
-      // Fallback if model didn’t return valid JSON
       parsed = { sentiment: "neutral", feedback: rawText };
     }
 
+    console.log("AI analysis result:", parsed);
     return parsed;
   } catch (error) {
     console.error("AI analysis error:", error.message);
     return { sentiment: "neutral", feedback: "Unable to analyze journal entry." };
   }
 }
+
 
 export default analyseJournal;
